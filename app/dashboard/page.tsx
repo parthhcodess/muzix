@@ -2,11 +2,12 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones } from "lucide-react"
+import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones, Share2, SkipBack, SkipForward } from "lucide-react"
+import axios from "axios"
 
 // Types for our queue items
 type MediaType = "youtube" | "spotify"
@@ -20,11 +21,15 @@ interface QueueItem {
   type: MediaType
 }
 
+const REFRESH_INTERVAL_MS = 10 * 1000;
+
 export default function MusicVotingQueue() {
   const [currentUrl, setCurrentUrl] = useState("")
   const [inputUrl, setInputUrl] = useState("")
   const [previewUrl, setPreviewUrl] = useState("")
   const [currentType, setCurrentType] = useState<MediaType>("youtube")
+  // Track history of played items
+  const [history, setHistory] = useState<QueueItem[]>([])
   const [queue, setQueue] = useState<QueueItem[]>([
     {
       id: "1",
@@ -52,14 +57,67 @@ export default function MusicVotingQueue() {
     },
   ])
 
+  async function refereshStreams() {
+    const res = await fetch(`/api/streams/my`, {
+      credentials: "include"
+    })
+    console.log(res)
+  }
+
+  useEffect(() => {
+    refereshStreams();
+    const interval = setInterval(() => {
+
+    }, REFRESH_INTERVAL_MS)
+  }, [])
+
   // Set the current playing media
   const playNext = () => {
     if (queue.length > 0) {
       const sortedQueue = [...queue].sort((a, b) => b.votes - a.votes)
       const nextItem = sortedQueue[0]
+      
+      // If there's currently a song playing, add it to history
+      if (currentUrl) {
+        // Find the current item based on URL
+        const currentItem = {
+          id: Date.now().toString(), // Generate new ID to avoid conflicts
+          title: `Previously Playing Track`,
+          thumbnail: "/placeholder.svg?height=90&width=120",
+          url: currentUrl,
+          votes: 0,
+          type: currentType,
+        }
+        setHistory([currentItem, ...history])
+      }
+      
       setCurrentUrl(nextItem.url)
       setCurrentType(nextItem.type)
       setQueue(queue.filter((item) => item.id !== nextItem.id))
+    }
+  }
+  
+  // Play the previous media from history
+  const playPrevious = () => {
+    if (history.length > 0) {
+      const prevItem = history[0]
+      
+      // Add current song back to queue if one is playing
+      if (currentUrl) {
+        const currentItem = {
+          id: Date.now().toString(),
+          title: `Previously Playing Track`,
+          thumbnail: "/placeholder.svg?height=90&width=120",
+          url: currentUrl,
+          votes: 0,
+          type: currentType,
+        }
+        setQueue([currentItem, ...queue])
+      }
+      
+      setCurrentUrl(prevItem.url)
+      setCurrentType(prevItem.type)
+      setHistory(history.slice(1))
     }
   }
 
@@ -76,6 +134,13 @@ export default function MusicVotingQueue() {
         return item
       }),
     )
+
+    fetch("/api/stream/upvote", {
+      method: "POST",
+      body: JSON.stringify({
+        streamId: id
+      })
+    })
   }
 
   // Handle URL input and preview
@@ -144,13 +209,28 @@ export default function MusicVotingQueue() {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto p-4 max-w-5xl pt-8">
-        <div className="my-8 text-center">
-          <h1 className="text-4xl font-bold mb-2">
-            Where Fans Choose the <span className="text-[#9333ea] font-bold">Music</span>
-          </h1>
-          <p className="text-gray-300 max-w-2xl mx-auto">
-            Muzix connects music creators with fans in real-time streams where the audience influences what plays next.
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">
+              Where Fans Choose the <span className="text-[#9333ea] font-bold">Music</span>
+            </h1>
+            <p className="text-gray-300">
+              Muzix connects music creators with fans in real-time streams where the audience influences what plays next.
+            </p>
+          </div>
+          <Button 
+            className="bg-[#9333ea] hover:bg-[#7928ca] flex items-center gap-2" 
+            onClick={() => {
+              // Create a shareable URL
+              const shareUrl = window.location.href;
+              // Copy to clipboard
+              navigator.clipboard.writeText(shareUrl);
+              alert("Link copied to clipboard! Share with your fans.");
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+            Share with Fans
+          </Button>
         </div>
 
         {/* Current Playing Section */}
@@ -188,13 +268,24 @@ export default function MusicVotingQueue() {
             )}
           </div>
           {currentUrl && (
-            <div className="mt-2 flex justify-end">
+            <div className="mt-2 flex justify-end gap-2">
+              <Button
+                onClick={playPrevious}
+                variant="outline"
+                className="border-[#9333ea]/30 text-[#9333ea] hover:bg-[#9333ea]/10 flex items-center gap-1"
+                disabled={history.length === 0}
+              >
+                <SkipBack size={16} />
+                Previous
+              </Button>
               <Button
                 onClick={playNext}
                 variant="outline"
-                className="border-[#9333ea]/30 text-[#9333ea] hover:bg-[#9333ea]/10"
+                className="border-[#9333ea]/30 text-[#9333ea] hover:bg-[#9333ea]/10 flex items-center gap-1"
+                disabled={queue.length === 0}
               >
-                Play Next
+                Next
+                <SkipForward size={16} />
               </Button>
             </div>
           )}

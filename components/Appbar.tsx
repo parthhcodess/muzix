@@ -21,11 +21,11 @@ export function Appbar() {
                       >
                         How It Works
                       </Link>
-                      {session.data?.user && <Button variant="outline" size="sm" className="ml-2 text-white" onClick={() => signOut()}>
+                      {session.data?.user && <Button variant="outline" size="sm" className="ml-2 text-white" onMouseDown={() => signOut()}>
                         Log Out
                       </Button>}
 
-                      {!session.data?.user && <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onClick={() => signIn()}>
+                      {!session.data?.user && <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onMouseDown={() => signIn()}>
                         Sign up
                       </Button>}
                     </nav>
