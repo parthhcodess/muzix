@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prismaClient } from "@/app/lib/db";
 import { YT_REGEX, SPOTIFY_REGEX } from "@/app/lib/utils";
+import { getServerSession } from "next-auth";
 // @ts-ignore
 import youtubesearchapi from "youtube-search-api";
 import fetch from "cross-fetch";
@@ -16,6 +17,32 @@ const CreateStreamSchema = z.object({
 
 export async function POST(req: NextRequest) {
     try {
+        const session = await getServerSession();
+        
+        // Check if user is authenticated
+        if (!session?.user?.email) {
+            return NextResponse.json({
+                message: "Unauthenticated"
+            }, {
+                status: 403
+            });
+        }
+
+        // Look up the user by email to get their ID
+        const user = await prismaClient.user.findFirst({
+            where: {
+                email: session.user.email
+            }
+        });
+
+        if (!user) {
+            return NextResponse.json({
+                message: "User not found"
+            }, {
+                status: 404
+            });
+        }
+
         // add the rate limiting so that the single user does not flood the stream
         const data = CreateStreamSchema.parse(await req.json()); //error thrown as the data comes in
         const isYt = YT_REGEX.test(data.url);
@@ -119,7 +146,7 @@ export async function POST(req: NextRequest) {
 
         const stream = await prismaClient.stream.create({
             data: {
-                userId: data.creatorId,
+                userId: user.id, // Use the actual user ID from the database
                 url: data.url,
                 extractedId: extractedId ?? "",
                 type,
@@ -132,6 +159,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             message: "Added Stream",
             id: stream.id,
+            title: stream.title,
+            smallImg: stream.smallImg,
             type
         })
     } catch(e) {

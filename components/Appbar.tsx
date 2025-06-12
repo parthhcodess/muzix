@@ -2,22 +2,26 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { useSmoothScroll } from "@/hooks/useSmoothScroll"
 
 export function Appbar() {
     const session = useSession();
+    const { handleSmoothScroll } = useSmoothScroll();
 
     return <div>
         <div className="flex flex-1 items-center justify-end space-x-4">
                     <nav className="flex items-center space-x-2">
                       <Link
                         href="#features"
-                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        onClick={(e) => handleSmoothScroll(e, 'features')}
+                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-white"
                       >
                         Features
                       </Link>
                       <Link
                         href="#how-it-works"
-                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        onClick={(e) => handleSmoothScroll(e, 'how-it-works')}
+                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-white"
                       >
                         How It Works
                       </Link>

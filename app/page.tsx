@@ -7,12 +7,12 @@ import { Redirect } from "@/components/Redirect"
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-black">
-      <header className="sticky top-0 z-40 w-full border-0 bg-black backdrop-blur supports-[backdrop-filter]:bg-black/60">
+    <div className="flex justify-center items-center min-h-screen flex-col bg-black">
+      <header className="flex justify-center items-center mx-auto py-3 px-7 sticky top-0 z-40 w-full border-0 bg-black backdrop-blur supports-[backdrop-filter]:bg-black/60">
         <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
           <div className="flex gap-2 items-center text-xl font-bold">
             <Radio className="h-6 w-6 text-purple-500" />
-            <span className="text-white">Muzix</span>
+            <Link href="/" className="text-white">WatchMax</Link>
           </div>
             <Appbar />
             <Redirect />
@@ -20,13 +20,13 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-black to-zinc-900">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-black to-zinc-900 rounded-4xl">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_600px] lg:gap-12 xl:grid-cols-[1fr_700px]">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-white">
-                    Where Fans Choose the Music, <span className="text-purple-600">Live</span>
+                    Where Fans Choose the Content, <span className="text-purple-600">Live</span>
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
                     Muzix connects music creators with fans in real-time streams where the audience influences what
@@ -65,11 +65,11 @@ export default function LandingPage() {
         </section>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
+        <section id="how-it-works" className="rounded-lg w-full py-12 md:py-24 lg:py-32 ">
+          <div className="rounded-lg container px-4 md:px-6 ">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-purple-100 px-3 py-1 text-sm dark:bg-purple-800/30">
+                <div className="inline-block rounded-lg bg-purple-100 px-3 py-1 text-sm dark:bg-purple-800/30 text-purple-600">
                   How It Works
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-white">Interactive Music Streaming</h2>
@@ -171,11 +171,11 @@ export default function LandingPage() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-zinc-900 to-black">
+        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-zinc-900 to-black rounded-4xl">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-purple-100 px-3 py-1 text-sm dark:bg-purple-800/30">
+                <div className="inline-block rounded-lg bg-purple-100 px-3 py-1 text-sm dark:bg-purple-800/30 text-purple-600">
                   Features
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-white">Why Choose Muzix?</h2>
@@ -184,12 +184,12 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col items-center space-y-2 rounded-lg border border-zinc-800 bg-gradient-to-b from-zinc-900 to-black p-6 shadow-md">
+            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3 ">
+              <div className="flex flex-col items-center space-y-2 rounded-lg border border-zinc-800 bg-gradient-to-b from-zinc-900 to-black p-6 shadow-[0_1px_rgba(0,0,0,0.05),0_4px_6px_rgba(34,42,53,0.04),0_24px_68px_rgba(47,48,55,0.05),0_2px_3px_rgba(0,0,0,0.04)] ">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800/30">
                   <Play className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-bold">Live Streaming</h3>
+                <h3 className="text-xl font-bold text-purple-400">Live Streaming</h3>
                 <p className="text-center text-muted-foreground">
                   High-quality audio streaming with minimal latency for the best listening experience.
                 </p>
@@ -198,7 +198,7 @@ export default function LandingPage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800/30">
                   <Users className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-bold">Fan Participation</h3>
+                <h3 className="text-xl font-bold text-purple-400">Fan Participation</h3>
                 <p className="text-center text-muted-foreground">
                   Democratic song selection where fans vote on what plays next during the stream.
                 </p>
@@ -207,7 +207,7 @@ export default function LandingPage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800/30">
                   <MessageSquare className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-bold">Real-time Chat</h3>
+                <h3 className="text-xl font-bold text-purple-400">Real-time Chat</h3>
                 <p className="text-center text-muted-foreground">
                   Connect with creators and other fans through live chat during streams.
                 </p>
@@ -216,7 +216,7 @@ export default function LandingPage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800/30">
                   <Music className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-bold">Music Library</h3>
+                <h3 className="text-xl font-bold text-purple-400">Music Library</h3>
                 <p className="text-center text-muted-foreground">
                   Upload and organize your music for easy access during streams.
                 </p>
@@ -225,7 +225,7 @@ export default function LandingPage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800/30">
                   <Heart className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-bold">Support Creators</h3>
+                <h3 className="text-xl font-bold text-purple-400">Support Creators</h3>
                 <p className="text-center text-muted-foreground">
                   Show appreciation with virtual gifts, tips, and subscriptions.
                 </p>
@@ -234,7 +234,7 @@ export default function LandingPage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800/30">
                   <Radio className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-bold">Discover New Music</h3>
+                <h3 className="text-xl font-bold text-purple-400">Discover New Music</h3>
                 <p className="text-center text-muted-foreground">
                   Find new artists and songs through personalized recommendations.
                 </p>
@@ -244,7 +244,7 @@ export default function LandingPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-zinc-900 to-black text-white">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-zinc-900 to-black text-white rounded-4xl">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -266,20 +266,20 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-      <footer className="w-full border-t border-zinc-800 bg-black py-6 md:py-12">
+      <footer className="flex justify-center items-center w-full border-t border-zinc-800 bg-black py-6 md:py-12">
         <div className="container flex flex-col items-center justify-center gap-4 px-4 md:px-6 md:flex-row md:justify-between">
           <div className="flex gap-2 items-center text-xl font-bold">
             <Radio className="h-6 w-6 text-purple-500" />
-            <span className="text-white">Muzix</span>
+            <span className="text-white">WatchMax</span>
           </div>
           <div className="flex gap-4">
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="" className="text-sm text-muted-foreground hover:text-white">
               Terms
             </Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="" className="text-sm text-muted-foreground hover:text-white">
               Privacy
             </Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="https://x.com/parthcodess" className="text-sm text-muted-foreground hover:text-white">
               Contact
             </Link>
           </div>
