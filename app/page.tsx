@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Music, Play, Users, Heart, MessageSquare, Headphones, Mic2, Radio } from "lucide-react"
 import { Appbar } from "@/components/Appbar"
 import { Redirect } from "@/components/Redirect"
+import { Spotlight } from "@/components/ui/spotlight"
 
 export default function LandingPage() {
   return (
@@ -21,6 +22,10 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-black to-zinc-900 rounded-4xl">
+          <Spotlight
+           className="-top-40 left-0 md:-top-20 md:left-60"
+           fill="purple"
+          />
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_600px] lg:gap-12 xl:grid-cols-[1fr_700px]">
               <div className="flex flex-col justify-center space-y-4">

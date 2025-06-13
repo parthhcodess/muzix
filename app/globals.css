@@ -1,9 +1,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@keyframes spotlight {
+  0% {
+    opacity: 0;
+    transform: translate(-72%, -62%) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -40%) scale(1);
+  }
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --animate-spotlight: spotlight 2s ease 0.75s 1 forwards;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

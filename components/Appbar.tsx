@@ -12,18 +12,18 @@ export function Appbar() {
         <div className="flex flex-1 items-center justify-end space-x-4">
                     <nav className="flex items-center space-x-2">
                       <Link
-                        href="#features"
-                        onClick={(e) => handleSmoothScroll(e, 'features')}
-                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-white"
-                      >
-                        Features
-                      </Link>
-                      <Link
                         href="#how-it-works"
                         onClick={(e) => handleSmoothScroll(e, 'how-it-works')}
                         className="text-sm font-medium text-muted-foreground transition-colors hover:text-white"
                       >
                         How It Works
+                      </Link>
+                      <Link
+                        href="#features"
+                        onClick={(e) => handleSmoothScroll(e, 'features')}
+                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-white"
+                      >
+                        Features
                       </Link>
                       {session.data?.user && <Button variant="outline" size="sm" className="ml-2 text-white" onMouseDown={() => signOut()}>
                         Log Out
