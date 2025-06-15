@@ -585,7 +585,7 @@ export default function MusicVotingQueue() {
                 <div className="flex gap-2">
                   <motion.button
                     whileTap={{
-                      scale: 0
+                      scale: 0.95
                     }}
                     type="button"
                     onClick={handlePreview}
@@ -595,7 +595,7 @@ export default function MusicVotingQueue() {
                   </motion.button>
                   <motion.button
                   whileTap={{
-                    scale: 0
+                    scale: 0.95
                   }} 
                   type="submit" 
                   className="hover:cursor-pointer px-3 sm:px-4 py-2 bg-[#9333ea] text-white rounded-md hover:bg-purple-900 text-xs sm:text-sm flex-1 sm:flex-none">
