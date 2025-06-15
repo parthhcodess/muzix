@@ -62,8 +62,14 @@ export async function POST(req: NextRequest) {
         // Extract ID differently based on URL type
         let extractedId;
         if (isYt) {
-            // For YouTube
-            extractedId = data.url.split("?v=")[1];
+            // For YouTube - handle multiple URL formats
+            if (data.url.includes("youtube.com/watch?v=")) {
+                extractedId = data.url.split("?v=")[1]?.split("&")[0];
+            } else if (data.url.includes("youtu.be/")) {
+                extractedId = data.url.split("youtu.be/")[1]?.split("?")[0];
+            } else if (data.url.includes("youtube.com/embed/")) {
+                extractedId = data.url.split("embed/")[1]?.split("?")[0];
+            }
         } else {
             // For Spotify
             const match = data.url.match(SPOTIFY_REGEX);
@@ -77,20 +83,33 @@ export async function POST(req: NextRequest) {
         // Get metadata for YouTube videos only
         if (isYt && extractedId) {
             try {
+                console.log("Fetching YouTube details for ID:", extractedId);
                 const res = await youtubesearchapi.GetVideoDetails(extractedId);
+                console.log("YouTube API response:", res);
                 
                 // Process YouTube metadata
                 title = res.title ?? "Can't Find Video";
                 
                 if (res.thumbnail && res.thumbnail.thumbnails) {
                     const thumbnails = res.thumbnail.thumbnails;
+                    console.log("Available thumbnails:", thumbnails);
                     thumbnails.sort((a: {width: number}, b: {width: number}) => a.width < b.width ? -1 : 1);
                     
                     smallImg = (thumbnails.length > 1 ? thumbnails[thumbnails.length - 2].url : thumbnails[thumbnails.length - 1].url);
                     bigImg = thumbnails[thumbnails.length - 1].url;
+                    console.log("Selected thumbnail URLs - small:", smallImg, "big:", bigImg);
+                } else {
+                    // Fallback to direct YouTube thumbnail URL
+                    smallImg = `https://img.youtube.com/vi/${extractedId}/mqdefault.jpg`;
+                    bigImg = `https://img.youtube.com/vi/${extractedId}/maxresdefault.jpg`;
+                    console.log("Using fallback YouTube thumbnails:", smallImg);
                 }
             } catch (ytError) {
                 console.error("Error fetching YouTube details:", ytError);
+                // Use direct YouTube thumbnail URLs as fallback
+                smallImg = `https://img.youtube.com/vi/${extractedId}/mqdefault.jpg`;
+                bigImg = `https://img.youtube.com/vi/${extractedId}/maxresdefault.jpg`;
+                console.log("YouTube API failed, using direct thumbnail URLs:", smallImg);
             }
         }
 

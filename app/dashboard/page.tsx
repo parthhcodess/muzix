@@ -101,18 +101,15 @@ export default function MusicVotingQueue() {
         // The API returns { streams: [...] }, not a direct array
         const streams = data.streams || []
         
-        const queueItems = streams.map((stream: { id: string; title?: string; smallImg?: string; url: string; upvotes?: number; type: string; haveUpvoted?: boolean }) => {
-          console.log('Stream data:', { id: stream.id, title: stream.title, smallImg: stream.smallImg, url: stream.url });
-          return {
-            id: stream.id,
-            title: stream.title || "Unknown Track",
-            thumbnail: stream.smallImg || "https://via.placeholder.com/120x90/1a1a1a/9333ea?text=No+Image",
-            url: formatUrl(stream.url).formattedUrl,
-            votes: stream.upvotes || 0, // API returns 'upvotes', not 'votes'
-            type: stream.type === "Youtube" ? "youtube" : "spotify" as MediaType,
-            haveUpvoted: stream.haveUpvoted || false // Track voting status
-          }
-        })
+        const queueItems = streams.map((stream: { id: string; title?: string; smallImg?: string; url: string; upvotes?: number; type: string; haveUpvoted?: boolean }) => ({
+          id: stream.id,
+          title: stream.title || "Unknown Track",
+          thumbnail: stream.smallImg || "https://via.placeholder.com/120x90/1a1a1a/9333ea?text=No+Image",
+          url: formatUrl(stream.url).formattedUrl,
+          votes: stream.upvotes || 0, // API returns 'upvotes', not 'votes'
+          type: stream.type === "Youtube" ? "youtube" : "spotify" as MediaType,
+          haveUpvoted: stream.haveUpvoted || false // Track voting status
+        }))
         
       setQueue(queueItems)
       } else {
