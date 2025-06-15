@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prismaClient } from "@/app/lib/db";
 import { getServerSession } from "next-auth";
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession();
     
@@ -33,7 +30,8 @@ export async function DELETE(
       });
     }
 
-    const streamId = params.id;
+    const resolvedParams = await params;
+    const streamId = resolvedParams.id;
 
     // Check if the stream exists and belongs to the user
     const stream = await prismaClient.stream.findFirst({
