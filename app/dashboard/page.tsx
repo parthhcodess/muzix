@@ -26,8 +26,6 @@ interface QueueItem {
   haveUpvoted?: boolean // Track if current user has upvoted
 }
 
-const REFRESH_INTERVAL_MS = 30 * 1000;
-
 export default function MusicVotingQueue() {
   const { data: session, status } = useSession()
   const logSession = useSession()

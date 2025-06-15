@@ -3,10 +3,10 @@ import { z } from "zod";
 import { prismaClient } from "@/app/lib/db";
 import { YT_REGEX, SPOTIFY_REGEX } from "@/app/lib/utils";
 import { getServerSession } from "next-auth";
-// @ts-expect-error
+// @ts-expect-error - youtube types not available
 import youtubesearchapi from "youtube-search-api";
 import fetch from "cross-fetch";
-// @ts-expect-error
+// @ts-expect-error - spotify types not available
 import spotifyUrlInfo from 'spotify-url-info';
 const { getData, getPreview } = spotifyUrlInfo(fetch);
 
