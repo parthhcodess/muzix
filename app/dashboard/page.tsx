@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones, Share2, SkipForward, X } from "lucide-react"
 import axios from "axios"
 import Link from "next/link"
-// @ts-expect-error
+// @ts-expect-error - youtube types not available
 import YouTubePlayer from "youtube-player"
 import { motion } from "framer-motion";
 
@@ -41,7 +41,7 @@ export default function MusicVotingQueue() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   // YouTube Player state
-  const [player, setPlayer] = useState<any>(null)
+  const [player, setPlayer] = useState<{ loadVideoById: (id: string) => Promise<void>; on: (event: string, callback: (event: { data: number }) => void) => void } | null>(null)
   const [currentVideoId, setCurrentVideoId] = useState<string>("")
 
   // Load queue from localStorage on mount
@@ -101,7 +101,7 @@ export default function MusicVotingQueue() {
         // The API returns { streams: [...] }, not a direct array
         const streams = data.streams || []
         
-        const queueItems = streams.map((stream: any) => ({
+        const queueItems = streams.map((stream: { id: string; title?: string; smallImg?: string; url: string; upvotes?: number; type: string; haveUpvoted?: boolean }) => ({
         id: stream.id,
         title: stream.title || "Unknown Track",
         thumbnail: stream.smallImg,
@@ -166,7 +166,7 @@ export default function MusicVotingQueue() {
           await ytPlayer.loadVideoById(currentVideoId)
           
           // Listen for state changes
-          ytPlayer.on('stateChange', (event: any) => {
+          ytPlayer.on('stateChange', (event: { data: number }) => {
             // 0 = ended, 1 = playing, 2 = paused, 3 = buffering, 5 = video cued
             if (event.data === 0) { // Video ended
               console.log('Video ended, playing next...')
@@ -182,6 +182,7 @@ export default function MusicVotingQueue() {
       
       initPlayer()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentVideoId, currentType])
 
   // Set the current playing media
@@ -400,9 +401,9 @@ export default function MusicVotingQueue() {
       setInputUrl("")
       setPreviewUrl("")
         
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error adding song:', error)
-        const errorMessage = error.response?.data?.message || "Error adding song to the queue. Please try again"
+        const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Error adding song to the queue. Please try again"
         
         // Show a less intrusive error message
         console.error('Submit error:', errorMessage)
@@ -447,6 +448,7 @@ export default function MusicVotingQueue() {
     if (!currentUrl && queue.length > 0) {
       playNext()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue, currentUrl])
 
   // Handle logout with redirect
@@ -680,6 +682,7 @@ export default function MusicVotingQueue() {
                     className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border border-gray-800 bg-black hover:bg-gray-900 transition"
                   >
                     <div className="flex-shrink-0 relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={item.thumbnail || "/placeholder.svg"}
                         alt={item.title}

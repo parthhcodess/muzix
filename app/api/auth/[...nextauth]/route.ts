@@ -24,8 +24,8 @@ const handler = NextAuth({
              provider: "Google"
           }
         })
-      } catch (_error) {
-
+      } catch {
+        // User already exists, silently continue
       }
       return true
     }
