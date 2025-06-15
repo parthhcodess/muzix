@@ -507,13 +507,9 @@ export default function MusicVotingQueue() {
             }}
             className="hover:cursor-pointer px-3 sm:px-4 py-2 rounded-lg bg-[#9333ea] hover:bg-purple-900 flex items-center gap-2 text-sm sm:text-base whitespace-nowrap" 
             onClick={() => {
-              if (session?.user?.email) {
-                const shareUrl = `${window.location.origin}/creator/${encodeURIComponent(session.user.email)}`;
-                navigator.clipboard.writeText(shareUrl);
-                alert("Shareable link copied! Your fans can now join your stream and vote on songs.");
-              } else {
-                alert("Please sign in to generate a shareable link.");
-              }
+              const shareUrl = window.location.href;
+              navigator.clipboard.writeText(shareUrl);
+              alert("Link copied to clipboard! Share with your fans.");
             }}
           >
             <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
