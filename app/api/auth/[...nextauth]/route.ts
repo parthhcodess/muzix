@@ -24,7 +24,7 @@ const handler = NextAuth({
              provider: "Google"
           }
         })
-      } catch (e) {
+      } catch (error) {
 
       }
       return true

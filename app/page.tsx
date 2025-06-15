@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { Music, Play, Users, Heart, MessageSquare, Headphones, Mic2, Radio } from "lucide-react"
 import { Appbar } from "@/components/Appbar"
-import { Redirect } from "@/components/Redirect"
 import { Spotlight } from "@/components/ui/spotlight"
 import { motion } from "motion/react"
 import { useSession, signIn } from "next-auth/react"
@@ -74,7 +73,6 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center space-x-2">
             <Appbar />
-            <Redirect />
           </div>
         </div>
       </header>

@@ -8,9 +8,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
 import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones, Share2, SkipForward, X } from "lucide-react"
 import axios from "axios"
-import { Redirect } from "@/components/Redirect"
 import Link from "next/link"
-// @ts-ignore
+// @ts-expect-error
 import YouTubePlayer from "youtube-player"
 import { motion } from "framer-motion";
 
@@ -480,7 +479,6 @@ export default function MusicVotingQueue() {
             {!logSession.data?.user && <Button size="sm" className="bg-purple-600 hover:bg-purple-700 px-2 sm:px-4 text-xs sm:text-sm" onMouseDown={() => signIn()}>
               Sign up
             </Button>}
-            <Redirect />
           </div>
         </div>
       </header>

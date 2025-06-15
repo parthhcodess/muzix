@@ -3,12 +3,12 @@ import { z } from "zod";
 import { prismaClient } from "@/app/lib/db";
 import { YT_REGEX, SPOTIFY_REGEX } from "@/app/lib/utils";
 import { getServerSession } from "next-auth";
-// @ts-ignore
+// @ts-expect-error
 import youtubesearchapi from "youtube-search-api";
 import fetch from "cross-fetch";
-// @ts-ignore
+// @ts-expect-error
 import spotifyUrlInfo from 'spotify-url-info';
-const { getData, getPreview, getTracks, getDetails } = spotifyUrlInfo(fetch);
+const { getData, getPreview } = spotifyUrlInfo(fetch);
 
 const CreateStreamSchema = z.object({
     creatorId: z.string(),
