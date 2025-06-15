@@ -130,9 +130,43 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-black text-foreground;
+    @apply bg-black text-foreground overflow-x-hidden text-responsive;
   }
   html {
     color-scheme: dark;
+    @apply scroll-smooth;
+  }
+}
+
+/* Mobile-first responsive utilities */
+@layer utilities {
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  .overflow-x-hidden {
+    overflow-x: hidden;
+  }
+  
+  /* Touch-friendly button sizes */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Safe area for mobile devices with notches */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Improved text readability on mobile */
+  .text-responsive {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 }

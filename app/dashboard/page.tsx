@@ -460,37 +460,37 @@ export default function MusicVotingQueue() {
 
   return (
     <div className="mx-auto min-h-screen bg-black text-white">
-      <header className="flex justify-center items-center mx-auto py-3 px-7 sticky top-0 z-40 w-full border-0 bg-black backdrop-blur supports-[backdrop-filter]:bg-black/60">
-        <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
-          <div className="flex gap-2 items-center text-xl font-bold">
-            <Radio className="h-6 w-6 text-purple-500" />
+      <header className="flex justify-center items-center mx-auto py-3 px-4 sm:px-7 sticky top-0 z-40 w-full border-0 bg-black backdrop-blur supports-[backdrop-filter]:bg-black/60">
+        <div className="container flex h-16 items-center space-x-2 sm:space-x-4 justify-between">
+          <div className="flex gap-2 items-center text-lg sm:text-xl font-bold">
+            <Radio className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />
             <Link href="/" className="text-white hover:text-purple-400 transition-colors" title="Back to Home">WatchMax</Link>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Link 
               href="/" 
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-white"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-white hidden sm:block"
             >
               Home
             </Link>
-            {logSession.data?.user && <Button size="sm" className="bg-black text-slate-500 border-2 px-4 py-2 border-slate-500 hover:border-white hover:bg-black hover:text-white hover:cursor-pointer" onMouseDown={handleLogout}>
+            {logSession.data?.user && <Button size="sm" className="bg-black text-slate-500 border-2 px-2 sm:px-4 py-2 border-slate-500 hover:border-white hover:bg-black hover:text-white hover:cursor-pointer text-xs sm:text-sm" onMouseDown={handleLogout}>
               Log Out
             </Button>}
 
-            {!logSession.data?.user && <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onMouseDown={() => signIn()}>
+            {!logSession.data?.user && <Button size="sm" className="bg-purple-600 hover:bg-purple-700 px-2 sm:px-4 text-xs sm:text-sm" onMouseDown={() => signIn()}>
               Sign up
             </Button>}
             <Redirect />
           </div>
         </div>
       </header>
-      <div className="container mx-auto p-4 max-w-5xl pt-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">
+      <div className="container mx-auto p-4 sm:p-6 max-w-5xl pt-4 sm:pt-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
               Where Friends Choose the <span className="text-[#9333ea] font-bold">Content</span>
             </h1>
-            <p className="text-gray-300">
+            <p className="text-gray-300 text-sm sm:text-base">
               WatchMax connects content creators with fans in real-time streams where the audience influences what plays next.
             </p>
           </div>
@@ -507,7 +507,7 @@ export default function MusicVotingQueue() {
             whileTap={{
               scale: 1
             }}
-            className="hover:cursor-pointer px-4 py-2 rounded-lg bg-[#9333ea] hover:bg-purple-900 flex items-center gap-2" 
+            className="hover:cursor-pointer px-3 sm:px-4 py-2 rounded-lg bg-[#9333ea] hover:bg-purple-900 flex items-center gap-2 text-sm sm:text-base whitespace-nowrap" 
             onClick={() => {
               // shareable URL
               const shareUrl = window.location.href;
@@ -516,15 +516,15 @@ export default function MusicVotingQueue() {
               alert("Link copied to clipboard! Share with your fans.");
             }}
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
             Share
           </motion.button>
         </div>
 
         {/* Current Playing Section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Headphones className="text-[#9333ea] h-5 w-5" />
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+            <Headphones className="text-[#9333ea] h-4 w-4 sm:h-5 sm:w-5" />
             <span>Now Playing</span>
           </h2>
           <div className="aspect-video bg-muted rounded-lg overflow-hidden border border-border">
@@ -544,10 +544,10 @@ export default function MusicVotingQueue() {
                 ></iframe>
               )
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="flex items-center justify-center h-full text-muted-foreground px-4">
                 <div className="text-center">
-                  <Music className="h-12 w-12 mx-auto mb-2 text-[#9333ea]/50" />
-                  <p>No media currently playing</p>
+                  <Music className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 text-[#9333ea]/50" />
+                  <p className="text-sm sm:text-base">No media currently playing</p>
                 </div>
               </div>
             )}
@@ -557,50 +557,53 @@ export default function MusicVotingQueue() {
               <Button
                 onClick={playNext}
                 variant="outline"
-                className="hover:cursor-pointer border-[#9333ea]/30 text-[#9333ea] hover:bg-[#9333ea]/10 flex items-center gap-1"
+                className="hover:cursor-pointer border-[#9333ea]/30 text-[#9333ea] hover:bg-[#9333ea]/10 flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
                 disabled={queue.length === 0}
               >
                 Next
-                <SkipForward size={16} />
+                <SkipForward size={14} className="sm:hidden" />
+                <SkipForward size={16} className="hidden sm:block" />
               </Button>
             </div>
           )}
         </div>
 
         {/* Submission Form */}
-        <div className="mb-8 bg-black border border-gray-800 rounded-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Music className="text-[#9333ea] h-5 w-5" />
+        <div className="mb-6 sm:mb-8 bg-black border border-gray-800 rounded-lg overflow-hidden">
+          <div className="p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+              <Music className="text-[#9333ea] h-4 w-4 sm:h-5 sm:w-5" />
               <span>Submit a Song</span>
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   placeholder="Paste YouTube link"
                   value={inputUrl}
                   onChange={handleUrlChange}
-                  className="flex-1 bg-[#111] text-white border border-gray-800 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#9333ea]"
+                  className="flex-1 bg-[#111] text-white border border-gray-800 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#9333ea] text-sm sm:text-base"
                 />
-                <motion.button
+                <div className="flex gap-2">
+                  <motion.button
+                    whileTap={{
+                      scale: 0
+                    }}
+                    type="button"
+                    onClick={handlePreview}
+                    className="hover:cursor-pointer px-3 sm:px-4 py-2 border border-[#9333ea]/30 text-[#9333ea] rounded-md hover:bg-slate-900 text-xs sm:text-sm flex-1 sm:flex-none"
+                  >
+                    Preview
+                  </motion.button>
+                  <motion.button
                   whileTap={{
                     scale: 0
-                  }}
-                  type="button"
-                  onClick={handlePreview}
-                  className="hover:cursor-pointer px-4 py-2 border border-[#9333ea]/30 text-[#9333ea] rounded-md hover:bg-slate-900"
-                >
-                  Preview
-                </motion.button>
-                <motion.button
-                whileTap={{
-                  scale: 0
-                }} 
-                type="submit" 
-                className="hover:cursor-pointer px-4 py-2 bg-[#9333ea] text-white rounded-md hover:bg-purple-900">
-                  Submit
-                </motion.button>
+                  }} 
+                  type="submit" 
+                  className="hover:cursor-pointer px-3 sm:px-4 py-2 bg-[#9333ea] text-white rounded-md hover:bg-purple-900 text-xs sm:text-sm flex-1 sm:flex-none">
+                    Submit
+                  </motion.button>
+                </div>
               </div>
 
               {previewUrl && (
@@ -633,25 +636,25 @@ export default function MusicVotingQueue() {
 
         {/* Queue Section */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Radio className="text-[#9333ea] h-5 w-5" />
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+            <Radio className="text-[#9333ea] h-4 w-4 sm:h-5 sm:w-5" />
             <span>Up Next</span>
           </h2>
           
           {isLoading && (
-            <div className="text-center py-12 text-gray-400 bg-black rounded-lg border border-gray-800">
-              <div className="animate-spin h-8 w-8 border-2 border-[#9333ea] border-t-transparent rounded-full mx-auto mb-2"></div>
-              <p>Loading streams...</p>
+            <div className="text-center py-8 sm:py-12 text-gray-400 bg-black rounded-lg border border-gray-800">
+              <div className="animate-spin h-6 w-6 sm:h-8 sm:w-8 border-2 border-[#9333ea] border-t-transparent rounded-full mx-auto mb-2"></div>
+              <p className="text-sm sm:text-base">Loading streams...</p>
             </div>
           )}
           
           {error && !isLoading && (
-            <div className="text-center py-12 text-red-400 bg-black rounded-lg border border-red-800/30">
-              <Music className="h-12 w-12 mx-auto mb-2 text-red-400/50" />
-              <p>{error}</p>
+            <div className="text-center py-8 sm:py-12 text-red-400 bg-black rounded-lg border border-red-800/30 px-4">
+              <Music className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 text-red-400/50" />
+              <p className="text-sm sm:text-base mb-3">{error}</p>
               <button 
                 onClick={refreshStreams}
-                className="mt-2 px-4 py-2 bg-[#9333ea] text-white rounded-md hover:bg-[#9333ea]/90"
+                className="mt-2 px-3 sm:px-4 py-2 bg-[#9333ea] text-white rounded-md hover:bg-[#9333ea]/90 text-xs sm:text-sm"
               >
                 Retry
               </button>
@@ -659,77 +662,85 @@ export default function MusicVotingQueue() {
           )}
           
           {!isLoading && !error && queue.length == 0 && (
-            <div className="text-center py-12 text-gray-400 bg-black rounded-lg border border-gray-800">
-              <Music className="h-12 w-12 mx-auto mb-2 text-[#9333ea]/50" />
+            <div className="text-center py-8 sm:py-12 text-gray-400 bg-black rounded-lg border border-gray-800 px-4">
+              <Music className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 text-[#9333ea]/50" />
               {status === "loading" ? (
-                <p>Loading...</p>
+                <p className="text-sm sm:text-base">Loading...</p>
               ) : !session?.user ? (
-                <p>Please sign in to view and submit songs!</p>
+                <p className="text-sm sm:text-base">Please sign in to view and submit songs!</p>
               ) : (
-              <p>Queue is empty. Submit a song to get started!</p>
+              <p className="text-sm sm:text-base">Queue is empty. Submit a song to get started!</p>
               )}
             </div>
           )}
           
           {!isLoading && !error && queue.length >= 0 && (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {[...queue]
                 .sort((a, b) => b.votes - a.votes)
                 .map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-gray-800 bg-black hover:bg-gray-900 transition"
+                    className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border border-gray-800 bg-black hover:bg-gray-900 transition"
                   >
                     <div className="flex-shrink-0 relative">
                       <img
                         src={item.thumbnail || "/placeholder.svg"}
                         alt={item.title}
-                        className="w-24 h-16 object-cover rounded"
+                        className="w-16 h-12 sm:w-24 sm:h-16 object-cover rounded"
                       />
                       <div className="absolute bottom-0 right-0 bg-black bg-opacity-70 p-1 rounded-tl">
                         {item.type === "youtube" ? (
-                          <Youtube size={14} className="text-[#9333ea]" />
+                          <Youtube size={12} className="text-[#9333ea] sm:hidden" />
                         ) : (
-                          <Music size={14} className="text-[#9333ea]" />
+                          <Music size={12} className="text-[#9333ea] sm:hidden" />
+                        )}
+                        {item.type === "youtube" ? (
+                          <Youtube size={14} className="text-[#9333ea] hidden sm:block" />
+                        ) : (
+                          <Music size={14} className="text-[#9333ea] hidden sm:block" />
                         )}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{item.title}</h3>
-                      <div className="text-sm text-gray-400 truncate">{item.url}</div>
+                      <h3 className="font-medium truncate text-sm sm:text-base">{item.title}</h3>
+                      <div className="text-xs sm:text-sm text-gray-400 truncate">{item.url}</div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                       <button
                         onClick={() => handleVote(item.id, true)}
                         disabled={item.haveUpvoted}
-                        className={`h-8 w-8 flex items-center justify-center rounded-full ${
+                        className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center rounded-full ${
                           item.haveUpvoted 
                             ? 'text-green-500 bg-green-500/20 cursor-not-allowed' 
                             : 'text-[#9333ea] hover:text-green-500 hover:bg-[#9333ea]/10'
                         }`}
                         title={item.haveUpvoted ? "You have already upvoted this" : "Upvote"}
                       >
-                        <ThumbsUp size={16} />
+                        <ThumbsUp size={14} className="sm:hidden" />
+                        <ThumbsUp size={16} className="hidden sm:block" />
                       </button>
-                      <span className="text-sm font-medium w-8 text-center bg-gray-900 rounded-md py-1">{item.votes}</span>
+                      <span className="text-xs sm:text-sm font-medium w-6 sm:w-8 text-center bg-gray-900 rounded-md py-1">{item.votes}</span>
                       <button
                         onClick={() => handleVote(item.id, false)}
                         disabled={!item.haveUpvoted}
-                        className={`h-8 w-8 flex items-center justify-center rounded-full ${
+                        className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center rounded-full ${
                           !item.haveUpvoted 
                             ? 'text-gray-600 cursor-not-allowed' 
                             : 'text-gray-400 hover:bg-[#9333ea]/10 hover:text-red-500'
                         }`}
                         title={!item.haveUpvoted ? "You must upvote first to downvote" : "Remove upvote"}
                       >
-                        <ThumbsDown size={16} />
+                        <ThumbsDown size={14} className="sm:hidden" />
+                        <ThumbsDown size={16} className="hidden sm:block" />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="h-8 w-8 flex items-center justify-center text-gray-400 hover:bg-red-500/10 hover:text-red-500 rounded-full"
+                        className="h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center text-gray-400 hover:bg-red-500/10 hover:text-red-500 rounded-full"
                         title="Delete from queue"
                       >
-                        <X size={16} />
+                        <X size={14} className="sm:hidden" />
+                        <X size={16} className="hidden sm:block" />
                       </button>
                     </div>
                   </div>

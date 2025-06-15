@@ -66,34 +66,36 @@ export default function LandingPage() {
       opacity: 1,
     }}
     className="flex justify-center items-center min-h-screen flex-col bg-black">
-      <header className="flex justify-center items-center mx-auto py-3 px-7 sticky top-0 z-40 w-full border-0 bg-black backdrop-blur supports-[backdrop-filter]:bg-black/60">
-        <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
-          <div className="flex gap-2 items-center text-xl font-bold">
-            <Radio className="h-6 w-6 text-purple-500" />
+      <header className="hover:cursor-pointer flex justify-center items-center mx-auto py-3 px-4 sm:px-7 sticky top-0 z-40 w-full border-0 bg-black backdrop-blur supports-[backdrop-filter]:bg-black/60">
+        <div className="container flex h-16 items-center space-x-2 sm:space-x-4 sm:justify-between">
+          <div className="flex gap-2 items-center text-lg sm:text-xl font-bold">
+            <Radio className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />
             <Link href="/" className="text-white">WatchMax</Link>
           </div>
+          <div className="flex items-center space-x-2">
             <Appbar />
             <Redirect />
+          </div>
         </div>
       </header>
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-20 md:py-40 lg:py-48 xl:py-64 bg-gradient-to-b from-black rounded-4xl">
+        <section className="w-full py-12 sm:py-20 md:py-32 lg:py-48 xl:py-64 bg-gradient-to-b from-black rounded-4xl">
           <Spotlight
            className="-top-40 left-0 md:-top-20 md:left-60"
            fill="purple"
           />
-          <div className="container px-6 md:px-6">
+          <div className="container px-4 sm:px-6 md:px-6">
             <motion.div 
-              className="flex flex-col items-center justify-center text-center space-y-8"
+              className="flex flex-col items-center justify-center text-center space-y-6 sm:space-y-8"
               initial={{ opacity: 0, y: 80 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3}}
               viewport={{ once: true }}
             >
-              <div className="max-w-4xl space-y-6">
+              <div className="max-w-4xl space-y-4 sm:space-y-6">
                 <motion.h1 
-                  className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-white"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tighter text-white px-4"
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
@@ -102,7 +104,7 @@ export default function LandingPage() {
                   Where Friends Choose the Content, <span className="text-purple-600">Live</span>
                 </motion.h1>
                 <motion.p 
-                  className="max-w-[600px] mx-auto text-muted-foreground md:text-xl"
+                  className="max-w-[600px] mx-auto text-muted-foreground text-base sm:text-lg md:text-xl px-4"
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.6 }}
@@ -112,7 +114,7 @@ export default function LandingPage() {
                   plays next. Create, listen, and engage like never before.
                 </motion.p>
                 <motion.div 
-                  className="flex flex-col gap-2 min-[400px]:flex-row justify-center"
+                  className="flex flex-col gap-2 min-[400px]:flex-row justify-center px-4"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.8 }}
@@ -135,7 +137,7 @@ export default function LandingPage() {
                     y: 0
                   }}
                   onClick={handleStartCreating}
-                  className="group relative bg-purple-600 text-white hover:bg-purple-900 rounded-lg px-4 py-2 cursor-pointer">
+                  className="group relative bg-purple-600 text-white hover:bg-purple-900 rounded-lg px-6 py-3 sm:px-4 sm:py-2 cursor-pointer text-sm sm:text-base">
                     <span className="group-hover:text-white transition-colors duration-300" >
                       {session?.user ? 'Start Creating' : 'Create Now'}
                     </span>
@@ -150,13 +152,13 @@ export default function LandingPage() {
         {/* How It Works Section */}
         <motion.section 
           id="how-it-works" 
-          className="rounded-lg w-full py-12 md:py-24 lg:py-32"
+          className="rounded-lg w-full py-8 sm:py-12 md:py-24 lg:py-32"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true, amount: 0.2 }}
         >
-          <div className="rounded-lg container px-4 md:px-6 ">
+          <div className="rounded-lg container px-4 sm:px-6 md:px-6">
             <motion.div 
               className="flex flex-col items-center justify-center space-y-4 text-center"
               variants={fadeInUp}
@@ -177,7 +179,7 @@ export default function LandingPage() {
                   How It Works
                 </motion.div>
                 <motion.h2 
-                  className="text-3xl font-bold tracking-tighter sm:text-5xl text-white"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter text-white px-4"
                   variants={fadeInUp}
                   initial="initial"
                   whileInView="animate"
@@ -187,7 +189,7 @@ export default function LandingPage() {
                   Interactive Streaming
                 </motion.h2>
                 <motion.p 
-                  className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed"
+                  className="max-w-[900px] text-muted-foreground text-base sm:text-lg md:text-xl px-4"
                   variants={fadeInUp}
                   initial="initial"
                   whileInView="animate"
@@ -199,9 +201,9 @@ export default function LandingPage() {
                 </motion.p>
               </div>
             </motion.div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
+            <div className="mx-auto grid max-w-5xl items-center gap-6 sm:gap-8 py-8 sm:py-12 lg:grid-cols-2 lg:gap-12">
               <motion.div 
-                className="flex flex-col justify-center space-y-4"
+                className="flex flex-col justify-center space-y-4 px-4"
                 variants={fadeInLeft}
                 initial="initial"
                 whileInView="animate"
@@ -212,7 +214,7 @@ export default function LandingPage() {
                   <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-black">
                     <Mic2 className="h-5 w-5 text-purple-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white">For Creators</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white">For Creators</h3>
                 </div>
                 <motion.ul 
                   className="space-y-4"
@@ -269,7 +271,7 @@ export default function LandingPage() {
                 </motion.ul>
               </motion.div>
               <motion.div 
-                className="flex flex-col justify-center space-y-4"
+                className="flex flex-col justify-center space-y-4 px-4"
                 variants={fadeInRight}
                 initial="initial"
                 whileInView="animate"
@@ -280,7 +282,7 @@ export default function LandingPage() {
                   <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-black">
                     <Headphones className="h-5 w-5 text-purple-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white">For Fans</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white">For Fans</h3>
                 </div>
                 <motion.ul 
                   className="space-y-4"
@@ -343,13 +345,13 @@ export default function LandingPage() {
         {/* Features Section */}
         <motion.section 
           id="features" 
-          className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-zinc-900 to-black rounded-4xl"
+          className="w-full py-8 sm:py-12 md:py-24 lg:py-32 bg-gradient-to-b from-zinc-900 to-black rounded-4xl"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true, amount: 0.2 }}
         >
-          <div className="container px-4 md:px-6">
+          <div className="container px-4 sm:px-6 md:px-6">
             <motion.div 
               className="flex flex-col items-center justify-center space-y-4 text-center"
               variants={fadeInUp}
@@ -370,17 +372,17 @@ export default function LandingPage() {
                   Features
                 </motion.div>
                 <motion.h2 
-                  className="text-3xl font-bold tracking-tighter sm:text-5xl text-white"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter text-white px-4"
                   variants={fadeInUp}
                   initial="initial"
                   whileInView="animate"
                   transition={{ duration: 0.8, delay: 0.3 }}
                   viewport={{ once: true }}
                 >
-                  Why Choose Muzix?
+                  Why Choose WatchMax?
                 </motion.h2>
                 <motion.p 
-                  className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed"
+                  className="max-w-[900px] text-muted-foreground text-base sm:text-lg md:text-xl px-4"
                   variants={fadeInUp}
                   initial="initial"
                   whileInView="animate"
@@ -392,7 +394,7 @@ export default function LandingPage() {
               </div>
             </motion.div>
             <motion.div 
-              className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3"
+              className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-6 py-8 sm:py-12 sm:grid-cols-2 lg:grid-cols-3"
               variants={staggerContainer}
               initial="initial"
               whileInView="animate"
@@ -488,13 +490,13 @@ export default function LandingPage() {
 
         {/* CTA Section */}
         <motion.section 
-          className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-zinc-900 to-black text-white rounded-t-4xl"
+          className="w-full py-8 sm:py-12 md:py-24 lg:py-32 bg-gradient-to-r from-zinc-900 to-black text-white rounded-t-4xl"
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true, amount: 0.3 }}
         >
-          <div className="container px-4 md:px-6">
+          <div className="container px-4 sm:px-6 md:px-6">
             <motion.div 
               className="flex flex-col items-center justify-center space-y-4 text-center"
               variants={fadeInUp}
@@ -505,7 +507,7 @@ export default function LandingPage() {
             >
               <div className="space-y-2">
                 <motion.h2 
-                  className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter px-4"
                   variants={fadeInUp}
                   initial="initial"
                   whileInView="animate"
@@ -515,7 +517,7 @@ export default function LandingPage() {
                   Ready to Transform Your Experience?
                 </motion.h2>
                 <motion.p 
-                  className="mx-auto max-w-[700px] md:text-xl"
+                  className="mx-auto max-w-[700px] text-base sm:text-lg md:text-xl px-4"
                   variants={fadeInUp}
                   initial="initial"
                   whileInView="animate"
@@ -526,7 +528,7 @@ export default function LandingPage() {
                 </motion.p>
               </div>
               <motion.div 
-                className="flex flex-col gap-2 min-[400px]:flex-row"
+                className="flex flex-col gap-2 min-[400px]:flex-row px-4"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
@@ -549,7 +551,7 @@ export default function LandingPage() {
                   y: 0
                 }}
                 onClick={handleStartCreating}
-                className="group relative bg-white text-purple-600 hover:bg-gray-100 rounded-lg px-4 py-2 cursor-pointer">
+                className="group relative bg-white text-purple-600 hover:bg-gray-100 rounded-lg px-6 py-3 sm:px-4 sm:py-2 cursor-pointer text-sm sm:text-base">
                   <span className="group-hover:text-purple-600 transition-colors duration-300" >
                     {session?.user ? 'Start Creating' : 'Sign In to Create'}
                   </span>
@@ -570,18 +572,18 @@ export default function LandingPage() {
         </motion.section>
       </main>
       <motion.footer 
-        className="flex justify-center items-center w-full border-t border-zinc-800 bg-black py-6 md:py-12"
+        className="flex justify-center items-center w-full border-t border-zinc-800 bg-black py-6 sm:py-8 md:py-12"
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <div className="container flex flex-col items-center justify-center gap-4 px-4 md:px-6 md:flex-row md:justify-between">
-          <div className="flex gap-2 items-center text-xl font-bold">
-            <Radio className="h-6 w-6 text-purple-500" />
+        <div className="container flex flex-col items-center justify-center gap-4 px-4 sm:px-6 md:px-6 md:flex-row md:justify-between">
+          <div className="flex gap-2 items-center text-lg sm:text-xl font-bold">
+            <Radio className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />
             <span className="text-white">WatchMax</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-3 sm:gap-4">
             <Link href="" className="text-sm text-muted-foreground hover:text-white">
               Terms
             </Link>
@@ -592,7 +594,7 @@ export default function LandingPage() {
               Contact
             </Link>
           </div>
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} WatchMax. All rights reserved.</p>
+          <p className="text-xs sm:text-sm text-muted-foreground text-center md:text-left">© {new Date().getFullYear()} WatchMax. All rights reserved.</p>
         </div>
       </motion.footer>
     </motion.div>
