@@ -3,9 +3,9 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button"
-import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones, Share2, SkipForward, X, Users } from "lucide-react"
+import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones, Share2, SkipForward, Users } from "lucide-react"
 import axios from "axios"
 import Link from "next/link"
 // @ts-expect-error - youtube types not available
@@ -28,7 +28,6 @@ interface QueueItem {
 
 export default function CreatorStreamPage() {
   const { data: session, status } = useSession()
-  const router = useRouter()
   const params = useParams()
   const creatorId = params.creatorId as string
   
@@ -39,7 +38,7 @@ export default function CreatorStreamPage() {
   const [queue, setQueue] = useState<QueueItem[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [player, setPlayer] = useState<{ loadVideoById: (id: string) => Promise<void>; on: (event: string, callback: (event: { data: number }) => void) => void } | null>(null)
+  const [, setPlayer] = useState<{ loadVideoById: (id: string) => Promise<void>; on: (event: string, callback: (event: { data: number }) => void) => void } | null>(null)
   const [currentVideoId, setCurrentVideoId] = useState<string>("")
   const [creatorInfo, setCreatorInfo] = useState<{ name: string; email: string } | null>(null)
 
@@ -56,13 +55,22 @@ export default function CreatorStreamPage() {
       })
       
       if (response.data && Array.isArray(response.data)) {
-        const formattedQueue: QueueItem[] = response.data.map((stream: any) => ({
+                 const formattedQueue: QueueItem[] = response.data.map((stream: {
+           id: string;
+           title: string;
+           smallImg: string;
+           url: string;
+           upvotes: number;
+           type: string;
+           haveUpvoted: boolean;
+           creatorId: string;
+         }) => ({
           id: stream.id,
           title: stream.title || `${stream.type === "youtube" ? "YouTube" : "Spotify"} Track`,
           thumbnail: stream.smallImg || "/placeholder.svg?height=90&width=120",
           url: formatUrl(stream.url).formattedUrl,
           votes: stream.upvotes || 0,
-          type: stream.type || "youtube",
+                     type: (stream.type || "youtube") as MediaType,
           haveUpvoted: stream.haveUpvoted || false,
           creatorId: stream.creatorId
         }))
@@ -79,21 +87,23 @@ export default function CreatorStreamPage() {
       } else {
         setQueue([])
       }
-    } catch (error: any) {
-      console.error('Error fetching streams:', error)
-      setError(error.response?.data?.message || "Failed to load streams. Please try again.")
+         } catch (error: unknown) {
+             console.error('Error fetching streams:', error)
+       const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to load streams. Please try again."
+       setError(errorMessage)
       setQueue([])
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Load streams on mount and when creatorId changes
-  useEffect(() => {
-    if (creatorId) {
-      refreshStreams()
-    }
-  }, [creatorId])
+     // Load streams on mount and when creatorId changes
+   useEffect(() => {
+     if (creatorId) {
+       refreshStreams()
+     }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [creatorId])
 
   // Extract YouTube ID from URL
   const extractYouTubeId = (url: string): string => {
@@ -125,9 +135,10 @@ export default function CreatorStreamPage() {
         }
       }
       
-      initPlayer()
-    }
-  }, [currentType, currentVideoId])
+             initPlayer()
+     }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [currentType, currentVideoId])
 
   // Play next song in queue
   const playNext = async () => {
@@ -293,12 +304,13 @@ export default function CreatorStreamPage() {
     }
   }
 
-  // Auto-play first video when queue has items but nothing is playing
-  useEffect(() => {
-    if (!currentUrl && queue.length > 0) {
-      playNext()
-    }
-  }, [queue, currentUrl])
+     // Auto-play first video when queue has items but nothing is playing
+   useEffect(() => {
+     if (!currentUrl && queue.length > 0) {
+       playNext()
+     }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [queue, currentUrl])
 
   return (
     <div className="mx-auto min-h-screen bg-black text-white">
@@ -340,7 +352,7 @@ export default function CreatorStreamPage() {
             <div className="flex items-center gap-2 mb-2">
               <Users className="h-5 w-5 text-purple-500" />
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">
-                {creatorInfo?.name || 'Creator'}'s <span className="text-[#9333ea] font-bold">Stream</span>
+                                 {creatorInfo?.name || 'Creator'}&apos;s <span className="text-[#9333ea] font-bold">Stream</span>
               </h1>
             </div>
             <p className="text-gray-300 text-sm sm:text-base">
