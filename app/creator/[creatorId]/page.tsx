@@ -1,12 +1,11 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button"
-import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones, Share2, SkipForward, X } from "lucide-react"
+import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones, Share2, SkipForward, X, Users } from "lucide-react"
 import axios from "axios"
 import Link from "next/link"
 // @ts-expect-error - youtube types not available
@@ -23,158 +22,104 @@ interface QueueItem {
   url: string
   votes: number
   type: MediaType
-  haveUpvoted?: boolean // Track if current user has upvoted
+  haveUpvoted?: boolean
+  creatorId: string
 }
 
-export default function MusicVotingQueue() {
+export default function CreatorStreamPage() {
   const { data: session, status } = useSession()
-  const logSession = useSession()
   const router = useRouter()
+  const params = useParams()
+  const creatorId = params.creatorId as string
+  
   const [currentUrl, setCurrentUrl] = useState("")
   const [inputUrl, setInputUrl] = useState("")
   const [previewUrl, setPreviewUrl] = useState("")
   const [currentType, setCurrentType] = useState<MediaType>("youtube")
-  // Track history of played items
-  const [history, setHistory] = useState<QueueItem[]>([])
   const [queue, setQueue] = useState<QueueItem[]>([])
-  // Add error state for better user experience
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  // YouTube Player state
   const [player, setPlayer] = useState<{ loadVideoById: (id: string) => Promise<void>; on: (event: string, callback: (event: { data: number }) => void) => void } | null>(null)
   const [currentVideoId, setCurrentVideoId] = useState<string>("")
+  const [creatorInfo, setCreatorInfo] = useState<{ name: string; email: string } | null>(null)
 
-  // Load queue from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedQueue = localStorage.getItem('musicQueue')
-      const savedCurrentUrl = localStorage.getItem('currentUrl')
-      const savedCurrentType = localStorage.getItem('currentType')
-      const savedCurrentVideoId = localStorage.getItem('currentVideoId')
-      
-      if (savedQueue) {
-        try {
-          setQueue(JSON.parse(savedQueue))
-        } catch (error) {
-          console.error('Error parsing saved queue:', error)
-        }
-      }
-      
-      if (savedCurrentUrl) setCurrentUrl(savedCurrentUrl)
-      if (savedCurrentType) setCurrentType(savedCurrentType as MediaType)
-      if (savedCurrentVideoId) setCurrentVideoId(savedCurrentVideoId)
-    }
-  }, [])
-
-  // Save queue to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('musicQueue', JSON.stringify(queue))
-    }
-  }, [queue])
-
-  // Save current playing state to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('currentUrl', currentUrl)
-      localStorage.setItem('currentType', currentType)
-      localStorage.setItem('currentVideoId', currentVideoId)
-    }
-  }, [currentUrl, currentType, currentVideoId])
-
+  // Load creator-specific streams
   async function refreshStreams() {
+    if (!creatorId) return
+    
+    setIsLoading(true)
+    setError(null)
+    
     try {
-      setIsLoading(true)
-      setError(null)
-      
-      const res = await fetch(`/api/streams/my`, {
-        method: 'GET',
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        }
+      const response = await axios.get(`/api/streams?creatorId=${encodeURIComponent(creatorId)}`, {
+        withCredentials: true
       })
       
-      if (res.ok) {
-        const data = await res.json()
-
-        // The API returns { streams: [...] }, not a direct array
-        const streams = data.streams || []
+      if (response.data && Array.isArray(response.data)) {
+        const formattedQueue: QueueItem[] = response.data.map((stream: any) => ({
+          id: stream.id,
+          title: stream.title || `${stream.type === "youtube" ? "YouTube" : "Spotify"} Track`,
+          thumbnail: stream.smallImg || "/placeholder.svg?height=90&width=120",
+          url: formatUrl(stream.url).formattedUrl,
+          votes: stream.upvotes || 0,
+          type: stream.type || "youtube",
+          haveUpvoted: stream.haveUpvoted || false,
+          creatorId: stream.creatorId
+        }))
         
-        const queueItems = streams.map((stream: { id: string; title?: string; smallImg?: string; url: string; upvotes?: number; type: string; haveUpvoted?: boolean }) => ({
-        id: stream.id,
-        title: stream.title || "Unknown Track",
-        thumbnail: stream.smallImg,
-        url: formatUrl(stream.url).formattedUrl,
-          votes: stream.upvotes || 0, // API returns 'upvotes', not 'votes'
-        type: stream.type === "Youtube" ? "youtube" : "spotify" as MediaType,
-        haveUpvoted: stream.haveUpvoted || false // Track voting status
-      }))
+        setQueue(formattedQueue)
         
-      setQueue(queueItems)
-      } else {
-        // Handle non-ok responses (like 403 for unauthenticated users)
-        const errorData = await res.json().catch(() => ({ message: 'Unknown error' }))
-        console.warn('Failed to refresh streams:', res.status, errorData.message)
-        
-        if (res.status === 403) {
-          setError("Please sign in to view your streams")
-          setQueue([])
-        } else {
-          setError(`Failed to load streams: ${errorData.message}`)
+        // Set creator info from first stream
+        if (formattedQueue.length > 0) {
+          setCreatorInfo({
+            name: creatorId.split('@')[0] || creatorId,
+            email: creatorId
+          })
         }
+      } else {
+        setQueue([])
       }
-    } catch (error) {
-      console.error('Error refreshing streams:', error)
-      setError("Unable to connect to server. Please check your internet connection.")
+    } catch (error: any) {
+      console.error('Error fetching streams:', error)
+      setError(error.response?.data?.message || "Failed to load streams. Please try again.")
+      setQueue([])
     } finally {
       setIsLoading(false)
     }
   }
 
-  // useEffect(() => {
-  //   refreshStreams(); // Load once on mount
-  //   // Remove the interval - no more automatic refreshing
-  //   // const interval = setInterval(() => {
-  //   //   refreshStreams()
-  //   // }, REFRESH_INTERVAL_MS)
+  // Load streams on mount and when creatorId changes
+  useEffect(() => {
+    if (creatorId) {
+      refreshStreams()
+    }
+  }, [creatorId])
 
-  //   // return () => clearInterval(interval)
-  // }, [])
-  
-  
-
-  // Extract YouTube video ID from URL
+  // Extract YouTube ID from URL
   const extractYouTubeId = (url: string): string => {
     if (url.includes("youtube.com/watch?v=")) {
       return url.split("v=")[1]?.split("&")[0] || ""
     } else if (url.includes("youtu.be/")) {
       return url.split("youtu.be/")[1]?.split("?")[0] || ""
-    } else if (url.includes("youtube.com/embed/")) {
-      return url.split("embed/")[1]?.split("?")[0] || ""
     }
     return ""
   }
 
-  // Initialize YouTube player
+  // Initialize YouTube Player
   useEffect(() => {
     if (typeof window !== 'undefined' && currentType === "youtube" && currentVideoId) {
       const initPlayer = async () => {
         try {
-          const ytPlayer = YouTubePlayer('youtube-player')
+          const playerInstance = YouTubePlayer('youtube-player')
+          await playerInstance.loadVideoById(currentVideoId)
           
-          await ytPlayer.loadVideoById(currentVideoId)
-          
-          // Listen for state changes
-          ytPlayer.on('stateChange', (event: { data: number }) => {
-            // 0 = ended, 1 = playing, 2 = paused, 3 = buffering, 5 = video cued
+          playerInstance.on('stateChange', (event: { data: number }) => {
             if (event.data === 0) { // Video ended
-              console.log('Video ended, playing next...')
               playNext()
             }
           })
           
-          setPlayer(ytPlayer)
+          setPlayer(playerInstance)
         } catch (error) {
           console.error('Error initializing YouTube player:', error)
         }
@@ -182,113 +127,57 @@ export default function MusicVotingQueue() {
       
       initPlayer()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentVideoId, currentType])
+  }, [currentType, currentVideoId])
 
-  // Set the current playing media
+  // Play next song in queue
   const playNext = async () => {
     if (queue.length > 0) {
-      const sortedQueue = [...queue].sort((a, b) => b.votes - a.votes)
-      const nextItem = sortedQueue[0]
+      const nextItem = queue[0]
+      const { formattedUrl, type } = formatUrl(nextItem.url)
       
-      // If there's currently a song playing, add it to history
-      if (currentUrl) {
-        const currentItem = {
-          id: Date.now().toString(),
-          title: `Previously Playing Track`,
-          thumbnail: "/placeholder.svg?height=90&width=120",
-          url: currentUrl,
-          votes: 0,
-          type: currentType,
-        }
-        setHistory([currentItem, ...history])
-      }
+      setCurrentUrl(formattedUrl)
+      setCurrentType(type)
       
-      // Delete the stream from database to prevent it from appearing again
-      try {
-        await fetch(`/api/streams/${nextItem.id}`, {
-          method: 'DELETE',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        console.log(`Stream ${nextItem.id} deleted from database`)
-      } catch (error) {
-        console.error('Error deleting stream from database:', error)
-      }
-      
-      setCurrentUrl(nextItem.url)
-      setCurrentType(nextItem.type)
-      
-      // Extract video ID for YouTube player
-      if (nextItem.type === "youtube") {
+      if (type === "youtube") {
         const videoId = extractYouTubeId(nextItem.url)
         setCurrentVideoId(videoId)
-        
-        // If player exists, load the new video
-        if (player) {
-          try {
-            await player.loadVideoById(videoId)
-          } catch (error) {
-            console.error('Error loading video:', error)
-          }
-        }
       }
       
-      setQueue(queue.filter((item) => item.id !== nextItem.id))
-    } else {
-      // No more videos in queue
-      setCurrentUrl("")
-      setCurrentVideoId("")
-      setCurrentType("youtube")
+      // Remove the played item from queue
+      setQueue(queue.slice(1))
     }
   }
 
   // Handle voting
   const handleVote = async (id: string, increment: boolean) => {
-    // Check if user has already voted on this item
-    const item = queue.find(q => q.id === id)
-    if (!item) return
-    
-    // If trying to upvote but already upvoted, or trying to downvote but not upvoted, return
-    if (increment && item.haveUpvoted) {
-      console.log('User has already upvoted this item')
-      return
-    }
-    if (!increment && !item.haveUpvoted) {
-      console.log('User has not upvoted this item, cannot downvote')
-      return
-    }
-
+    // Optimistically update the UI
     setQueue(
-      queue.map((queueItem) => {
-        if (queueItem.id === id) {
+      queue.map((item) => {
+        if (item.id === id) {
           return {
-            ...queueItem,
-            votes: increment ? queueItem.votes + 1 : Math.max(0, queueItem.votes - 1),
-            haveUpvoted: increment ? true : false
+            ...item,
+            votes: increment ? item.votes + 1 : item.votes - 1,
+            haveUpvoted: increment ? true : false,
           }
         }
-        return queueItem
+        return item
       }),
     )
 
     try {
       const endpoint = increment ? "/api/streams/upvote" : "/api/streams/downvote"
       const response = await fetch(endpoint, {
-      method: "POST",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-      body: JSON.stringify({
-        streamId: id
+        body: JSON.stringify({
+          streamId: id
+        })
       })
-    })
 
       if (!response.ok) {
-        // Only revert for non-403/404 errors (stream might not exist anymore)
         if (response.status !== 403 && response.status !== 404) {
           const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
           console.error('Voting failed:', response.status, errorData.message)
@@ -305,10 +194,6 @@ export default function MusicVotingQueue() {
               return item
             }),
           )
-        }
-        // For 403/404 errors, just log silently - stream probably doesn't exist
-        else {
-          console.log(`Stream ${id} no longer exists for voting (${response.status})`)
         }
       }
     } catch (error) {
@@ -342,7 +227,6 @@ export default function MusicVotingQueue() {
   // Determine if URL is YouTube or Spotify and format for embedding
   const formatUrl = (url: string): { formattedUrl: string; type: MediaType } => {
     if (url.includes("youtube.com") || url.includes("youtu.be")) {
-      // Extract YouTube ID and format for embedding
       let videoId = ""
       if (url.includes("youtube.com/watch?v=")) {
         videoId = url.split("v=")[1]?.split("&")[0] || ""
@@ -354,7 +238,6 @@ export default function MusicVotingQueue() {
         type: "youtube",
       }
     } else if (url.includes("spotify.com")) {
-      // Extract Spotify ID and format for embedding
       let trackId = ""
       if (url.includes("track/")) {
         trackId = url.split("track/")[1]?.split("?")[0] || ""
@@ -382,64 +265,31 @@ export default function MusicVotingQueue() {
 
         const response = await axios.post("/api/streams", {
           url: inputUrl,
-          creatorId: session.user.email // Use session email as identifier
+          creatorId: creatorId // Submit to the specific creator's stream
         }, {
           withCredentials: true
         })
         
         const newItem: QueueItem = {
-        id: response.data.id,
-        title: response.data.title || `New ${type === "youtube" ? "YouTube" : "Spotify"} Track`,
-        thumbnail: response.data.smallImg || "/placeholder.svg?height=90&width=120",
-        url: formattedUrl,
-        votes: 0,
-        type,
-        haveUpvoted: false // New items haven't been voted on
-      }
+          id: response.data.id,
+          title: response.data.title || `New ${type === "youtube" ? "YouTube" : "Spotify"} Track`,
+          thumbnail: response.data.smallImg || "/placeholder.svg?height=90&width=120",
+          url: formattedUrl,
+          votes: 0,
+          type,
+          haveUpvoted: false,
+          creatorId: creatorId
+        }
         
-      setQueue([...queue, newItem])
-      setInputUrl("")
-      setPreviewUrl("")
+        setQueue([...queue, newItem])
+        setInputUrl("")
+        setPreviewUrl("")
         
       } catch (error: unknown) {
         console.error('Error adding song:', error)
         const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Error adding song to the queue. Please try again"
-        
-        // Show a less intrusive error message
-        console.error('Submit error:', errorMessage)
-        // You could replace this with a toast notification instead of alert
         alert(errorMessage)
       }
-    }
-  }
-
-  // Handle deleting a stream
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await fetch(`/api/streams/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        // Remove from local queue after successful database deletion
-        setQueue(queue.filter(item => item.id !== id))
-      } else {
-        // Handle errors gracefully
-        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
-        console.error('Delete failed:', response.status, errorData.message)
-        
-        // Still remove from local queue even if database deletion fails
-        setQueue(queue.filter(item => item.id !== id))
-      }
-    } catch (error) {
-      console.error('Error deleting stream:', error)
-      
-      // Still remove from local queue even if there's a network error
-      setQueue(queue.filter(item => item.id !== id))
     }
   }
 
@@ -448,14 +298,7 @@ export default function MusicVotingQueue() {
     if (!currentUrl && queue.length > 0) {
       playNext()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue, currentUrl])
-
-  // Handle logout with redirect
-  const handleLogout = async () => {
-    await signOut({ redirect: false })
-    router.push('/')
-  }
 
   return (
     <div className="mx-auto min-h-screen bg-black text-white">
@@ -472,24 +315,36 @@ export default function MusicVotingQueue() {
             >
               Home
             </Link>
-            {logSession.data?.user && <Button size="sm" className="bg-black text-slate-500 border-2 px-2 sm:px-4 py-2 border-slate-500 hover:border-white hover:bg-black hover:text-white hover:cursor-pointer text-xs sm:text-sm" onMouseDown={handleLogout}>
+            {session?.user && (
+              <Link 
+                href="/dashboard" 
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-white hidden sm:block"
+              >
+                My Dashboard
+              </Link>
+            )}
+            {session?.user && <Button size="sm" className="bg-black text-slate-500 border-2 px-2 sm:px-4 py-2 border-slate-500 hover:border-white hover:bg-black hover:text-white hover:cursor-pointer text-xs sm:text-sm" onMouseDown={() => signOut()}>
               Log Out
             </Button>}
 
-            {!logSession.data?.user && <Button size="sm" className="bg-purple-600 hover:bg-purple-700 px-2 sm:px-4 text-xs sm:text-sm" onMouseDown={() => signIn()}>
-              Sign up
+            {!session?.user && <Button size="sm" className="bg-purple-600 hover:bg-purple-700 px-2 sm:px-4 text-xs sm:text-sm" onMouseDown={() => signIn()}>
+              Sign In
             </Button>}
           </div>
         </div>
       </header>
+      
       <div className="container mx-auto p-4 sm:p-6 max-w-5xl pt-4 sm:pt-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
-              Where Friends Choose the <span className="text-[#9333ea] font-bold">Content</span>
-            </h1>
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="h-5 w-5 text-purple-500" />
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">
+                {creatorInfo?.name || 'Creator'}'s <span className="text-[#9333ea] font-bold">Stream</span>
+              </h1>
+            </div>
             <p className="text-gray-300 text-sm sm:text-base">
-              WatchMax connects content creators with fans in real-time streams where the audience influences what plays next.
+              Join the stream and vote on what plays next! Submit your favorite songs and help shape the playlist.
             </p>
           </div>
           <motion.button
@@ -497,7 +352,7 @@ export default function MusicVotingQueue() {
               scale: 1.1,
               translate: -2,
               backgroundColor: "#7928ca",
-              boxShadow: "0px 5px 10px rgba(0, 0, 0, 0..2)",
+              boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.2)",
               transition: {
                 duration: 0.3
               }
@@ -507,17 +362,13 @@ export default function MusicVotingQueue() {
             }}
             className="hover:cursor-pointer px-3 sm:px-4 py-2 rounded-lg bg-[#9333ea] hover:bg-purple-900 flex items-center gap-2 text-sm sm:text-base whitespace-nowrap" 
             onClick={() => {
-              if (session?.user?.email) {
-                const shareUrl = `${window.location.origin}/creator/${encodeURIComponent(session.user.email)}`;
-                navigator.clipboard.writeText(shareUrl);
-                alert("Shareable link copied! Your fans can now join your stream and vote on songs.");
-              } else {
-                alert("Please sign in to generate a shareable link.");
-              }
+              const shareUrl = window.location.href;
+              navigator.clipboard.writeText(shareUrl);
+              alert("Link copied to clipboard! Share with your friends.");
             }}
           >
             <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
-            Share
+            Share Stream
           </motion.button>
         </div>
 
@@ -548,6 +399,7 @@ export default function MusicVotingQueue() {
                 <div className="text-center">
                   <Music className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 text-[#9333ea]/50" />
                   <p className="text-sm sm:text-base">No media currently playing</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">Submit a song to get the party started!</p>
                 </div>
               </div>
             )}
@@ -596,11 +448,11 @@ export default function MusicVotingQueue() {
                     Preview
                   </motion.button>
                   <motion.button
-                  whileTap={{
-                    scale: 0.95
-                  }} 
-                  type="submit" 
-                  className="hover:cursor-pointer px-3 sm:px-4 py-2 bg-[#9333ea] text-white rounded-md hover:bg-purple-900 text-xs sm:text-sm flex-1 sm:flex-none">
+                    whileTap={{
+                      scale: 0.95
+                    }} 
+                    type="submit" 
+                    className="hover:cursor-pointer px-3 sm:px-4 py-2 bg-[#9333ea] text-white rounded-md hover:bg-purple-900 text-xs sm:text-sm flex-1 sm:flex-none">
                     Submit
                   </motion.button>
                 </div>
@@ -661,20 +513,25 @@ export default function MusicVotingQueue() {
             </div>
           )}
           
-          {!isLoading && !error && queue.length == 0 && (
+          {!isLoading && !error && queue.length === 0 && (
             <div className="text-center py-8 sm:py-12 text-gray-400 bg-black rounded-lg border border-gray-800 px-4">
               <Music className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 text-[#9333ea]/50" />
               {status === "loading" ? (
                 <p className="text-sm sm:text-base">Loading...</p>
               ) : !session?.user ? (
-                <p className="text-sm sm:text-base">Please sign in to view and submit songs!</p>
+                <div>
+                  <p className="text-sm sm:text-base mb-2">Join the stream to submit and vote on songs!</p>
+                  <Button onClick={() => signIn()} className="bg-purple-600 hover:bg-purple-700">
+                    Sign In to Participate
+                  </Button>
+                </div>
               ) : (
-              <p className="text-sm sm:text-base">Queue is empty. Submit a song to get started!</p>
+                <p className="text-sm sm:text-base">No songs in queue yet. Be the first to submit one!</p>
               )}
             </div>
           )}
           
-          {!isLoading && !error && queue.length >= 0 && (
+          {!isLoading && !error && queue.length > 0 && (
             <div className="space-y-2 sm:space-y-3">
               {[...queue]
                 .sort((a, b) => b.votes - a.votes)
@@ -710,13 +567,21 @@ export default function MusicVotingQueue() {
                     <div className="flex items-center gap-1 sm:gap-2">
                       <button
                         onClick={() => handleVote(item.id, true)}
-                        disabled={item.haveUpvoted}
+                        disabled={item.haveUpvoted || !session?.user}
                         className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center rounded-full ${
                           item.haveUpvoted 
                             ? 'text-green-500 bg-green-500/20 cursor-not-allowed' 
+                            : !session?.user
+                            ? 'text-gray-600 cursor-not-allowed'
                             : 'text-[#9333ea] hover:text-green-500 hover:bg-[#9333ea]/10'
                         }`}
-                        title={item.haveUpvoted ? "You have already upvoted this" : "Upvote"}
+                        title={
+                          !session?.user 
+                            ? "Sign in to vote" 
+                            : item.haveUpvoted 
+                            ? "You have already upvoted this" 
+                            : "Upvote"
+                        }
                       >
                         <ThumbsUp size={14} className="sm:hidden" />
                         <ThumbsUp size={16} className="hidden sm:block" />
@@ -724,24 +589,22 @@ export default function MusicVotingQueue() {
                       <span className="text-xs sm:text-sm font-medium w-6 sm:w-8 text-center bg-gray-900 rounded-md py-1">{item.votes}</span>
                       <button
                         onClick={() => handleVote(item.id, false)}
-                        disabled={!item.haveUpvoted}
+                        disabled={!item.haveUpvoted || !session?.user}
                         className={`h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center rounded-full ${
-                          !item.haveUpvoted 
+                          !item.haveUpvoted || !session?.user
                             ? 'text-gray-600 cursor-not-allowed' 
                             : 'text-gray-400 hover:bg-[#9333ea]/10 hover:text-red-500'
                         }`}
-                        title={!item.haveUpvoted ? "You must upvote first to downvote" : "Remove upvote"}
+                        title={
+                          !session?.user
+                            ? "Sign in to vote"
+                            : !item.haveUpvoted 
+                            ? "You must upvote first to downvote" 
+                            : "Remove upvote"
+                        }
                       >
                         <ThumbsDown size={14} className="sm:hidden" />
                         <ThumbsDown size={16} className="hidden sm:block" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center text-gray-400 hover:bg-red-500/10 hover:text-red-500 rounded-full"
-                        title="Delete from queue"
-                      >
-                        <X size={14} className="sm:hidden" />
-                        <X size={16} className="hidden sm:block" />
                       </button>
                     </div>
                   </div>
@@ -753,4 +616,3 @@ export default function MusicVotingQueue() {
     </div>
   )
 }
-
