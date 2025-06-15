@@ -101,15 +101,18 @@ export default function MusicVotingQueue() {
         // The API returns { streams: [...] }, not a direct array
         const streams = data.streams || []
         
-        const queueItems = streams.map((stream: { id: string; title?: string; smallImg?: string; url: string; upvotes?: number; type: string; haveUpvoted?: boolean }) => ({
-        id: stream.id,
-        title: stream.title || "Unknown Track",
-        thumbnail: stream.smallImg,
-        url: formatUrl(stream.url).formattedUrl,
-          votes: stream.upvotes || 0, // API returns 'upvotes', not 'votes'
-        type: stream.type === "Youtube" ? "youtube" : "spotify" as MediaType,
-        haveUpvoted: stream.haveUpvoted || false // Track voting status
-      }))
+        const queueItems = streams.map((stream: { id: string; title?: string; smallImg?: string; url: string; upvotes?: number; type: string; haveUpvoted?: boolean }) => {
+          console.log('Stream data:', { id: stream.id, title: stream.title, smallImg: stream.smallImg, url: stream.url });
+          return {
+            id: stream.id,
+            title: stream.title || "Unknown Track",
+            thumbnail: stream.smallImg || "https://via.placeholder.com/120x90/1a1a1a/9333ea?text=No+Image",
+            url: formatUrl(stream.url).formattedUrl,
+            votes: stream.upvotes || 0, // API returns 'upvotes', not 'votes'
+            type: stream.type === "Youtube" ? "youtube" : "spotify" as MediaType,
+            haveUpvoted: stream.haveUpvoted || false // Track voting status
+          }
+        })
         
       setQueue(queueItems)
       } else {
@@ -507,7 +510,9 @@ export default function MusicVotingQueue() {
             }}
             className="hover:cursor-pointer px-3 sm:px-4 py-2 rounded-lg bg-[#9333ea] hover:bg-purple-900 flex items-center gap-2 text-sm sm:text-base whitespace-nowrap" 
             onClick={() => {
+              // shareable URL
               const shareUrl = window.location.href;
+              // Copy to clipboard
               navigator.clipboard.writeText(shareUrl);
               alert("Link copied to clipboard! Share with your fans.");
             }}
@@ -682,9 +687,13 @@ export default function MusicVotingQueue() {
                     <div className="flex-shrink-0 relative">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={item.thumbnail || "/placeholder.svg"}
+                        src={item.thumbnail || "https://via.placeholder.com/120x90/1a1a1a/9333ea?text=No+Image"}
                         alt={item.title}
-                        className="w-16 h-12 sm:w-24 sm:h-16 object-cover rounded"
+                        className="w-16 h-12 sm:w-24 sm:h-16 object-cover rounded border border-gray-700"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://via.placeholder.com/120x90/1a1a1a/9333ea?text=No+Image";
+                        }}
                       />
                       <div className="absolute bottom-0 right-0 bg-black bg-opacity-70 p-1 rounded-tl">
                         {item.type === "youtube" ? (
