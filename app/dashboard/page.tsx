@@ -3,12 +3,16 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
-import { useSession } from "next-auth/react"
+import { signIn, signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones, Share2, SkipBack, SkipForward, X } from "lucide-react"
+import { ThumbsUp, ThumbsDown, Music, Youtube, Radio, Headphones, Share2, SkipForward, X } from "lucide-react"
 import axios from "axios"
+import { Redirect } from "@/components/Redirect"
+import Link from "next/link"
+// @ts-ignore
+import YouTubePlayer from "youtube-player"
+import { motion } from "framer-motion";
 
 // Types for our queue items
 type MediaType = "youtube" | "spotify"
@@ -20,12 +24,15 @@ interface QueueItem {
   url: string
   votes: number
   type: MediaType
+  haveUpvoted?: boolean // Track if current user has upvoted
 }
 
 const REFRESH_INTERVAL_MS = 30 * 1000;
 
 export default function MusicVotingQueue() {
   const { data: session, status } = useSession()
+  const logSession = useSession()
+  const router = useRouter()
   const [currentUrl, setCurrentUrl] = useState("")
   const [inputUrl, setInputUrl] = useState("")
   const [previewUrl, setPreviewUrl] = useState("")
@@ -36,6 +43,47 @@ export default function MusicVotingQueue() {
   // Add error state for better user experience
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  // YouTube Player state
+  const [player, setPlayer] = useState<any>(null)
+  const [currentVideoId, setCurrentVideoId] = useState<string>("")
+
+  // Load queue from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedQueue = localStorage.getItem('musicQueue')
+      const savedCurrentUrl = localStorage.getItem('currentUrl')
+      const savedCurrentType = localStorage.getItem('currentType')
+      const savedCurrentVideoId = localStorage.getItem('currentVideoId')
+      
+      if (savedQueue) {
+        try {
+          setQueue(JSON.parse(savedQueue))
+        } catch (error) {
+          console.error('Error parsing saved queue:', error)
+        }
+      }
+      
+      if (savedCurrentUrl) setCurrentUrl(savedCurrentUrl)
+      if (savedCurrentType) setCurrentType(savedCurrentType as MediaType)
+      if (savedCurrentVideoId) setCurrentVideoId(savedCurrentVideoId)
+    }
+  }, [])
+
+  // Save queue to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('musicQueue', JSON.stringify(queue))
+    }
+  }, [queue])
+
+  // Save current playing state to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('currentUrl', currentUrl)
+      localStorage.setItem('currentType', currentType)
+      localStorage.setItem('currentVideoId', currentVideoId)
+    }
+  }, [currentUrl, currentType, currentVideoId])
 
   async function refreshStreams() {
     try {
@@ -62,7 +110,8 @@ export default function MusicVotingQueue() {
         thumbnail: stream.smallImg,
         url: formatUrl(stream.url).formattedUrl,
           votes: stream.upvotes || 0, // API returns 'upvotes', not 'votes'
-        type: stream.type === "Youtube" ? "youtube" : "spotify" as MediaType
+        type: stream.type === "Youtube" ? "youtube" : "spotify" as MediaType,
+        haveUpvoted: stream.haveUpvoted || false // Track voting status
       }))
         
       setQueue(queueItems)
@@ -86,15 +135,57 @@ export default function MusicVotingQueue() {
     }
   }
 
-  useEffect(() => {
-    refreshStreams(); // Load once on mount
-    // Remove the interval - no more automatic refreshing
-    // const interval = setInterval(() => {
-    //   refreshStreams()
-    // }, REFRESH_INTERVAL_MS)
+  // useEffect(() => {
+  //   refreshStreams(); // Load once on mount
+  //   // Remove the interval - no more automatic refreshing
+  //   // const interval = setInterval(() => {
+  //   //   refreshStreams()
+  //   // }, REFRESH_INTERVAL_MS)
 
-    // return () => clearInterval(interval)
-  }, [])
+  //   // return () => clearInterval(interval)
+  // }, [])
+  
+  
+
+  // Extract YouTube video ID from URL
+  const extractYouTubeId = (url: string): string => {
+    if (url.includes("youtube.com/watch?v=")) {
+      return url.split("v=")[1]?.split("&")[0] || ""
+    } else if (url.includes("youtu.be/")) {
+      return url.split("youtu.be/")[1]?.split("?")[0] || ""
+    } else if (url.includes("youtube.com/embed/")) {
+      return url.split("embed/")[1]?.split("?")[0] || ""
+    }
+    return ""
+  }
+
+  // Initialize YouTube player
+  useEffect(() => {
+    if (typeof window !== 'undefined' && currentType === "youtube" && currentVideoId) {
+      const initPlayer = async () => {
+        try {
+          const ytPlayer = YouTubePlayer('youtube-player')
+          
+          await ytPlayer.loadVideoById(currentVideoId)
+          
+          // Listen for state changes
+          ytPlayer.on('stateChange', (event: any) => {
+            // 0 = ended, 1 = playing, 2 = paused, 3 = buffering, 5 = video cued
+            if (event.data === 0) { // Video ended
+              console.log('Video ended, playing next...')
+              playNext()
+            }
+          })
+          
+          setPlayer(ytPlayer)
+        } catch (error) {
+          console.error('Error initializing YouTube player:', error)
+        }
+      }
+      
+      initPlayer()
+    }
+  }, [currentVideoId, currentType])
 
   // Set the current playing media
   const playNext = async () => {
@@ -104,9 +195,8 @@ export default function MusicVotingQueue() {
       
       // If there's currently a song playing, add it to history
       if (currentUrl) {
-        // Find the current item based on URL
         const currentItem = {
-          id: Date.now().toString(), // Generate new ID to avoid conflicts
+          id: Date.now().toString(),
           title: `Previously Playing Track`,
           thumbnail: "/placeholder.svg?height=90&width=120",
           url: currentUrl,
@@ -116,61 +206,73 @@ export default function MusicVotingQueue() {
         setHistory([currentItem, ...history])
       }
       
-      // Remove database deletion - manage queue locally only
-      // try {
-      //   await fetch(`/api/streams/${nextItem.id}`, {
-      //     method: 'DELETE',
-      //     credentials: 'include',
-      //     headers: {
-      //       'Content-Type': 'application/json'
-      //     }
-      //   })
-      // } catch (error) {
-      //   console.error('Error deleting stream:', error)
-      // }
+      // Delete the stream from database to prevent it from appearing again
+      try {
+        await fetch(`/api/streams/${nextItem.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        console.log(`Stream ${nextItem.id} deleted from database`)
+      } catch (error) {
+        console.error('Error deleting stream from database:', error)
+      }
       
       setCurrentUrl(nextItem.url)
       setCurrentType(nextItem.type)
-      setQueue(queue.filter((item) => item.id !== nextItem.id))
-    }
-  }
-  
-  // Play the previous media from history
-  const playPrevious = () => {
-    if (history.length > 0) {
-      const prevItem = history[0]
       
-      // Add current song back to queue if one is playing
-      if (currentUrl) {
-        const currentItem = {
-          id: Date.now().toString(),
-          title: `Previously Playing Track`,
-          thumbnail: "/placeholder.svg?height=90&width=120",
-          url: currentUrl,
-          votes: 0,
-          type: currentType,
+      // Extract video ID for YouTube player
+      if (nextItem.type === "youtube") {
+        const videoId = extractYouTubeId(nextItem.url)
+        setCurrentVideoId(videoId)
+        
+        // If player exists, load the new video
+        if (player) {
+          try {
+            await player.loadVideoById(videoId)
+          } catch (error) {
+            console.error('Error loading video:', error)
+          }
         }
-        setQueue([currentItem, ...queue])
       }
       
-      setCurrentUrl(prevItem.url)
-      setCurrentType(prevItem.type)
-      setHistory(history.slice(1))
+      setQueue(queue.filter((item) => item.id !== nextItem.id))
+    } else {
+      // No more videos in queue
+      setCurrentUrl("")
+      setCurrentVideoId("")
+      setCurrentType("youtube")
     }
   }
 
   // Handle voting
   const handleVote = async (id: string, increment: boolean) => {
-    // Optimistically update the UI
+    // Check if user has already voted on this item
+    const item = queue.find(q => q.id === id)
+    if (!item) return
+    
+    // If trying to upvote but already upvoted, or trying to downvote but not upvoted, return
+    if (increment && item.haveUpvoted) {
+      console.log('User has already upvoted this item')
+      return
+    }
+    if (!increment && !item.haveUpvoted) {
+      console.log('User has not upvoted this item, cannot downvote')
+      return
+    }
+
     setQueue(
-      queue.map((item) => {
-        if (item.id === id) {
+      queue.map((queueItem) => {
+        if (queueItem.id === id) {
           return {
-            ...item,
-            votes: increment ? item.votes + 1 : Math.max(0, item.votes - 1),
+            ...queueItem,
+            votes: increment ? queueItem.votes + 1 : Math.max(0, queueItem.votes - 1),
+            haveUpvoted: increment ? true : false
           }
         }
-        return item
+        return queueItem
       }),
     )
 
@@ -294,14 +396,12 @@ export default function MusicVotingQueue() {
         url: formattedUrl,
         votes: 0,
         type,
+        haveUpvoted: false // New items haven't been voted on
       }
         
       setQueue([...queue, newItem])
       setInputUrl("")
       setPreviewUrl("")
-        
-        // Refresh streams to get the latest data from server
-        await refreshStreams()
         
       } catch (error: any) {
         console.error('Error adding song:', error)
@@ -345,13 +445,45 @@ export default function MusicVotingQueue() {
     }
   }
 
-  // If no current URL is set, play the next item
-  if (!currentUrl && queue.length > 0) {
-    playNext()
+  // Auto-play first video when queue has items but nothing is playing
+  useEffect(() => {
+    if (!currentUrl && queue.length > 0) {
+      playNext()
+    }
+  }, [queue, currentUrl])
+
+  // Handle logout with redirect
+  const handleLogout = async () => {
+    await signOut({ redirect: false })
+    router.push('/')
   }
 
   return (
     <div className="mx-auto min-h-screen bg-black text-white">
+      <header className="flex justify-center items-center mx-auto py-3 px-7 sticky top-0 z-40 w-full border-0 bg-black backdrop-blur supports-[backdrop-filter]:bg-black/60">
+        <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
+          <div className="flex gap-2 items-center text-xl font-bold">
+            <Radio className="h-6 w-6 text-purple-500" />
+            <Link href="/" className="text-white hover:text-purple-400 transition-colors" title="Back to Home">WatchMax</Link>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Link 
+              href="/" 
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-white"
+            >
+              Home
+            </Link>
+            {logSession.data?.user && <Button size="sm" className="bg-black text-slate-500 border-2 px-4 py-2 border-slate-500 hover:border-white hover:bg-black hover:text-white hover:cursor-pointer" onMouseDown={handleLogout}>
+              Log Out
+            </Button>}
+
+            {!logSession.data?.user && <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onMouseDown={() => signIn()}>
+              Sign up
+            </Button>}
+            <Redirect />
+          </div>
+        </div>
+      </header>
       <div className="container mx-auto p-4 max-w-5xl pt-8">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -362,10 +494,22 @@ export default function MusicVotingQueue() {
               WatchMax connects content creators with fans in real-time streams where the audience influences what plays next.
             </p>
           </div>
-          <Button 
-            className="bg-[#9333ea] hover:bg-[#7928ca] flex items-center gap-2" 
+          <motion.button
+            whileHover={{
+              scale: 1.1,
+              translate: -2,
+              backgroundColor: "#7928ca",
+              boxShadow: "0px 5px 10px rgba(0, 0, 0, 0..2)",
+              transition: {
+                duration: 0.3
+              }
+            }}
+            whileTap={{
+              scale: 1
+            }}
+            className="hover:cursor-pointer px-4 py-2 rounded-lg bg-[#9333ea] hover:bg-purple-900 flex items-center gap-2" 
             onClick={() => {
-              // Create a shareable URL
+              // shareable URL
               const shareUrl = window.location.href;
               // Copy to clipboard
               navigator.clipboard.writeText(shareUrl);
@@ -374,7 +518,7 @@ export default function MusicVotingQueue() {
           >
             <Share2 className="h-4 w-4" />
             Share
-          </Button>
+          </motion.button>
         </div>
 
         {/* Current Playing Section */}
@@ -386,13 +530,10 @@ export default function MusicVotingQueue() {
           <div className="aspect-video bg-muted rounded-lg overflow-hidden border border-border">
             {currentUrl ? (
               currentType === "youtube" ? (
-                <iframe
+                <div 
+                  id="youtube-player"
                   className="w-full h-full"
-                  src={currentUrl}
-                  title="YouTube video player"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+                />
               ) : (
                 <iframe
                   className="w-full h-full"
@@ -414,18 +555,9 @@ export default function MusicVotingQueue() {
           {currentUrl && (
             <div className="mt-2 flex justify-end gap-2">
               <Button
-                onClick={playPrevious}
-                variant="outline"
-                className="border-[#9333ea]/30 text-[#9333ea] hover:bg-[#9333ea]/10 flex items-center gap-1"
-                disabled={history.length === 0}
-              >
-                <SkipBack size={16} />
-                Previous
-              </Button>
-              <Button
                 onClick={playNext}
                 variant="outline"
-                className="border-[#9333ea]/30 text-[#9333ea] hover:bg-[#9333ea]/10 flex items-center gap-1"
+                className="hover:cursor-pointer border-[#9333ea]/30 text-[#9333ea] hover:bg-[#9333ea]/10 flex items-center gap-1"
                 disabled={queue.length === 0}
               >
                 Next
@@ -446,21 +578,29 @@ export default function MusicVotingQueue() {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Paste YouTube or Spotify link"
+                  placeholder="Paste YouTube link"
                   value={inputUrl}
                   onChange={handleUrlChange}
                   className="flex-1 bg-[#111] text-white border border-gray-800 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#9333ea]"
                 />
-                <button
+                <motion.button
+                  whileTap={{
+                    scale: 0
+                  }}
                   type="button"
                   onClick={handlePreview}
-                  className="px-4 py-2 border border-[#9333ea]/30 text-[#9333ea] rounded-md hover:bg-[#9333ea]/10"
+                  className="hover:cursor-pointer px-4 py-2 border border-[#9333ea]/30 text-[#9333ea] rounded-md hover:bg-slate-900"
                 >
                   Preview
-                </button>
-                <button type="submit" className="px-4 py-2 bg-[#9333ea] text-white rounded-md hover:bg-[#9333ea]/90">
+                </motion.button>
+                <motion.button
+                whileTap={{
+                  scale: 0
+                }} 
+                type="submit" 
+                className="hover:cursor-pointer px-4 py-2 bg-[#9333ea] text-white rounded-md hover:bg-purple-900">
                   Submit
-                </button>
+                </motion.button>
               </div>
 
               {previewUrl && (
@@ -561,14 +701,26 @@ export default function MusicVotingQueue() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleVote(item.id, true)}
-                        className="h-8 w-8 flex items-center justify-center text-[#9333ea] hover:text-green-500 hover:bg-[#9333ea]/10 rounded-full"
+                        disabled={item.haveUpvoted}
+                        className={`h-8 w-8 flex items-center justify-center rounded-full ${
+                          item.haveUpvoted 
+                            ? 'text-green-500 bg-green-500/20 cursor-not-allowed' 
+                            : 'text-[#9333ea] hover:text-green-500 hover:bg-[#9333ea]/10'
+                        }`}
+                        title={item.haveUpvoted ? "You have already upvoted this" : "Upvote"}
                       >
                         <ThumbsUp size={16} />
                       </button>
                       <span className="text-sm font-medium w-8 text-center bg-gray-900 rounded-md py-1">{item.votes}</span>
                       <button
                         onClick={() => handleVote(item.id, false)}
-                        className="h-8 w-8 flex items-center justify-center text-gray-400 hover:bg-[#9333ea]/10 hover:text-red-500 rounded-full"
+                        disabled={!item.haveUpvoted}
+                        className={`h-8 w-8 flex items-center justify-center rounded-full ${
+                          !item.haveUpvoted 
+                            ? 'text-gray-600 cursor-not-allowed' 
+                            : 'text-gray-400 hover:bg-[#9333ea]/10 hover:text-red-500'
+                        }`}
+                        title={!item.haveUpvoted ? "You must upvote first to downvote" : "Remove upvote"}
                       >
                         <ThumbsDown size={16} />
                       </button>

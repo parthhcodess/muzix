@@ -5,12 +5,6 @@ import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
 export function Redirect() {
-    const session = useSession()
-    const router = useRouter()  
-    useEffect(() => {
-        if (session?.data?.user) {
-            router.push("")
-        }
-    }, [session])
+    // Remove automatic redirect - let users choose where to navigate
     return null
 }
